@@ -117,7 +117,7 @@ class _DefaultAvailableTestTimesState extends State<DefaultAvailableTestTimes> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Color(0xFF094869),
-        title: AppbarText(),
+        title: Text(testCenture,style: TextStyle(color: Colors.white,fontSize: 20.0),),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(
@@ -138,10 +138,37 @@ class _DefaultAvailableTestTimesState extends State<DefaultAvailableTestTimes> {
           )
         ],
       ),
-        body: testCentureDepend()
+        body: Container(
+          child: StreamBuilder<QuerySnapshot>(
+            stream: Firestore.instance
+                .collection("test_centers")
+                .document(testCenture)
+                .collection("available_dates")
+                .snapshots(),
+            builder: (BuildContext context,AsyncSnapshot<QuerySnapshot> snapshot){
+              if(ConnectionState==ConnectionState.waiting){
+                return Center(
+                    child: SpinKitWave(
+                        color: Colors.white,
+                        type: SpinKitWaveType.center));
+              }else{
+                if(snapshot.hasData){
+                  return ListView(
+                    children: snapshot.data.documents
+                        .map((DocumentSnapshot document) {
+                      return listTileTimeTest(context, document);
+                    }).toList(),
+                  );
+                }else{
+                  return Center(child: Text('No Data'),);
+                }
+              }
+            },
+          ),
+        )
     );
   }
-  Widget AppbarText(){
+ /* Widget AppbarText(){
     if(_selectedChoice==choices[0]){
       return Text(testCenture,style: TextStyle(color: Colors.white,fontSize: 20.0),);
     }
@@ -151,8 +178,8 @@ class _DefaultAvailableTestTimesState extends State<DefaultAvailableTestTimes> {
     else{
       return Text("Lancashire",style: TextStyle(color: Colors.white,fontSize: 20.0),);
     }
-  }
-  Widget testCentureDepend(){
+  }*/
+  /*Widget testCentureDepend(){
     if(_selectedChoice==choices[0]){
       return Container(
           child: StreamBuilder<QuerySnapshot>(
@@ -263,7 +290,7 @@ class _DefaultAvailableTestTimesState extends State<DefaultAvailableTestTimes> {
                 }
               }));
     }
-  }
+  }*/
   void _select(Choice choice) {
     setState(() {
       _selectedChoice = choice;

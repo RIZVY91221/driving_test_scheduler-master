@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:side_header_list_view/side_header_list_view.dart';
 
 class AddTestCentur extends StatefulWidget {
@@ -12,6 +13,7 @@ class _AddTestCenturState extends State<AddTestCentur> {
 
   bool _isSearch = true;
   String _searchText = "";
+  List<String>maxThree=[];
 
   List<TestCenter>testCenter=<TestCenter>[
     TestCenter("Aberdeen North"),
@@ -389,6 +391,10 @@ class _AddTestCenturState extends State<AddTestCentur> {
   ];
   List<TestCenter> _searchListItem=[];
 
+  Future<bool> _saveList() async {
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+    return await prefs.setStringList("testCenters", maxThree);
+  }
   @override
   void initState() {
     // TODO: implement initState
@@ -402,7 +408,7 @@ class _AddTestCenturState extends State<AddTestCentur> {
     return Scaffold(
       appBar:AppBar(
         backgroundColor: Color(0xFF094869),
-        title:Text("ADD TEST CENTER"),
+        title:Text("ADD TEST CENTER",style: TextStyle(fontSize: 17),),
         centerTitle: true,
         leading: IconButton(
           icon: Icon(
@@ -411,16 +417,34 @@ class _AddTestCenturState extends State<AddTestCentur> {
           ),
           onPressed: () => Navigator.pop(context, false),
         ),
+        actions: [
+         Padding(
+           padding: EdgeInsets.only(right: 15),
+            child:  IconButton(
+              icon: Text(
+                "Save",
+                style: Theme.of(context).textTheme.button.apply(
+                  color:Colors.yellow,
+                ),
+              ),
+              onPressed: (){
+                _saveList();
+                Navigator.of(context).pop();
+              },
+            ),
+         )
+        ],
       ) ,
       body: Padding(
         padding: EdgeInsets.all(5),
         child:new Column(
           children: <Widget>[
             new Container(
-              color: Theme.of(context).primaryColor,
+              color: Colors.white,
               child: new Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: new Card(
+                  elevation: 7.0,
                   child: new ListTile(
                     leading: new Icon(Icons.search),
                     title: new TextField(
@@ -443,13 +467,39 @@ class _AddTestCenturState extends State<AddTestCentur> {
                ListView.separated(
                    itemBuilder: (BuildContext context,int index){
                      return ListTile(
-
-                       onLongPress: (){
-                         setState(() {
-                           _searchListItem[index].selected = !testCenter[index].selected;
-                           print(_searchListItem[index].selected.toString());
-                         });
+                       onTap: (){
+                         print(maxThree.toString());
+                         print(maxThree.length);
+                         if(_searchListItem[index].selected==false){
+                           if(maxThree.length<3){
+                             maxThree.add(_searchListItem[index].name);
+                             setState(() {
+                               _searchListItem[index].selected = !testCenter[index].selected;
+                               print(_searchListItem[index].selected.toString());
+                             });
+                           }
+                         }
+                         else{
+                           print(maxThree.toString());
+                             maxThree.remove(_searchListItem[index].name);
+                             setState(() {
+                               _searchListItem[index].selected =false;
+                               print(_searchListItem[index].selected.toString());
+                             });
+                         }
                        },
+                      /* onLongPress: (){
+
+                         maxThree.add(_searchListItem[index].name);
+                         print(maxThree.length);
+                         if(maxThree.length<4){
+                           setState(() {
+                             _searchListItem[index].selected = !testCenter[index].selected;
+                             print(_searchListItem[index].selected.toString());
+                           });
+                         }
+
+                       },*/
                        title: Text(_searchListItem[index].name,style: TextStyle(fontWeight: FontWeight.w400,fontSize: 18),),
                        leading: CircleAvatar(
                          radius: 25,
@@ -466,13 +516,37 @@ class _AddTestCenturState extends State<AddTestCentur> {
                ListView.separated(
                    itemBuilder: (BuildContext context,int index){
                      return ListTile(
+                       onTap: (){
+                         print(maxThree.length);
+                         if(testCenter[index].selected==false){
+                           if(maxThree.length<3){
+                             maxThree.add(testCenter[index].name);
+                             setState(() {
+                               testCenter[index].selected = !testCenter[index].selected;
+                               print(testCenter[index].selected.toString());
+                             });
+                           }
+                         }
+                        else{
+                             maxThree.remove(testCenter[index].name);
+                             setState(() {
+                               testCenter[index].selected =false;
+                               print(testCenter[index].selected.toString());
+                             });
 
-                       onLongPress: (){
-                         setState(() {
-                           testCenter[index].selected = !testCenter[index].selected;
-                           print(testCenter[index].selected.toString());
-                         });
+                         }
                        },
+                      /* onLongPress: (){
+                         maxThree.add(testCenter[index].name);
+                         print(maxThree.length);
+                         if(maxThree.length<4){
+                           setState(() {
+                             testCenter[index].selected = !testCenter[index].selected;
+                             print(testCenter[index].selected.toString());
+                           });
+                         }
+
+                       },*/
                        title: Text(testCenter[index].name,style: TextStyle(fontWeight: FontWeight.w400,fontSize: 18),),
                        leading: CircleAvatar(
                          radius: 25,

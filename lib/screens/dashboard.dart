@@ -4,6 +4,7 @@ import 'package:driving_test_scheduler/screens/default_available_test_times.dart
 import 'package:driving_test_scheduler/screens/login_screen.dart';
 import 'package:driving_test_scheduler/screens/settings.dart';
 import 'package:driving_test_scheduler/screens/splash_screen.dart';
+import 'package:driving_test_scheduler/screens/tab_bar_screen.dart';
 import 'package:driving_test_scheduler/utilities/custom_list_Tile.dart';
 import 'package:flutter/material.dart';
 import 'package:driving_test_scheduler/screens/notifications.dart';
@@ -35,6 +36,7 @@ class _DashboardState extends State<Dashboard> {
   String typeOfTest;
   String fee;
   String testCenture;
+  int testCenterLength=0;
 
   Future <bool>isPayment()async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -79,11 +81,15 @@ class _DashboardState extends State<Dashboard> {
   }
   Future<String> getFee() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
-    return preferences.getString("TypeOfTest");
+    return preferences.getString("Fee");
   }
   Future<String> getTestStatus() async {
     SharedPreferences preferences = await SharedPreferences.getInstance();
     return preferences.getString("TestStatus");
+  }
+  Future<List> _getList() async{
+    SharedPreferences prefs=await SharedPreferences.getInstance();
+    return prefs.getStringList("testCenters");
   }
 
 //  Future getWork()async{
@@ -221,6 +227,11 @@ class _DashboardState extends State<Dashboard> {
       });
     });
 
+    _getList().then((value) {
+      setState(() {
+        testCenterLength=value.length;
+      });
+    });
 
     super.initState();
   }
@@ -239,9 +250,9 @@ class _DashboardState extends State<Dashboard> {
               icon: Icon(Icons.notifications),
               iconSize: 40,
               color: Colors.white,
-              onPressed: () =>payment==null?
+              onPressed: () =>/*payment==null?
                   Navigator.push(context,
-                      MaterialPageRoute(builder: (context) => Settings())):Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => Settings())):*/Navigator.push(context,
                   MaterialPageRoute(builder: (context) => Notifications()))
             )
           ],
@@ -294,25 +305,29 @@ class _DashboardState extends State<Dashboard> {
                 ),
                 //CustomListTile(Icons.dashboard,'Home',()=>[]),
                 SizedBox(height: 20.0),
-                CustomListTile(Icons.watch_later, 'Test Centers & Time', () =>
+                CustomListTile(Icons.watch_later, 'Test Centers & Time', () =>testCenterLength!=0?
                     Navigator.push(context, MaterialPageRoute(
-                        builder: (context) => DefaultAvailableTestTimes(testCenture: testCenture))),),
+                        builder: (context) =>TestCenterTababr() /*DefaultAvailableTestTimes(testCenture: testCenture)*/)):Navigator.push(context, MaterialPageRoute(
+                    builder: (context) =>DefaultAvailableTestTimes(testCenture: testCenture)))),
                 //CustomListTile(Icons.notifications,'Notifications',()=>Navigator.push(context, MaterialPageRoute(builder: (context)=>SplashScreen())),),
-                CustomListTile(Icons.add, 'Add Test Center', () =>payment==null?
+                CustomListTile(Icons.add, 'Add Test Center', () =>/*payment==null?
                     Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Settings())):Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Settings())).then((value) =>setState(() {
+                        })):*/Navigator.push(context,
                     MaterialPageRoute(builder: (context) => AddTestCentur())),),
-                CustomListTile(Icons.notifications, 'Notification', () =>payment!=null?
+                CustomListTile(Icons.notifications, 'Notification', () =>
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Notifications())):
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => Settings())),),
+                    MaterialPageRoute(builder: (context) => Notifications()))
+                   /* Navigator.push(context,
+                        MaterialPageRoute(builder: (context) => Settings()))*/,),
                 CustomListTile(Icons.lock, 'Logout', () async{
                   SharedPreferences prefs = await SharedPreferences.getInstance();
                   prefs.remove('status');
                   prefs.clear();
-                  Navigator.push(context, MaterialPageRoute(
-                      builder: (context) => LoginScreen()));
+                  Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (BuildContext context) => LoginScreen()),
+                          (Route<dynamic> route) => false);
                 }
                    ),
               ],
@@ -499,7 +514,6 @@ class CustomCard2 extends StatelessWidget {
   String test_fee;
   String test_status;
 
-
   CustomCard2(this.date_time,this.last_date,this.test_center,this.type_of_test,this.test_fee,this.test_status);
 
 
@@ -514,57 +528,61 @@ class CustomCard2 extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(8.0),
 
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              //Container(color: Colors.grey,
-              // child:
-              Padding(
-                padding: const EdgeInsets.only(left:8.0,top:8.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text('Date And Time Of Test',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(date_time,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-                    SizedBox(height: 15.0),
-                    Text('Last Date To Change or Cancel',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(last_date,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-                    SizedBox(height: 15.0),
-                    Text('Test Center',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(test_center,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-                    SizedBox(height: 15.0),
-                    Text('Type Of Test',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(type_of_test,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-                    SizedBox(height: 15.0),
-                    Text('Fee',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(test_fee,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-                    SizedBox(height: 15.0),
-                    Text('Test Status',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
-                    Padding(
-                      padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
-                      child: Text(test_status,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
-                    ),
-
-                  ],
+          child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                Text('Date And Time Of Test',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
+                  child: Text(date_time, style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
                 ),
-              ),
-            ],
-          ),
+                SizedBox(height: 15.0),
+                Text('Last Date To Change or Cancel',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
+                  child: Text(last_date,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
+                ),
+                SizedBox(height: 15.0),
+                Text('Test Center',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                InkWell(
+                  onTap: ()=> Navigator.push(context, MaterialPageRoute(
+                      builder: (context) => DefaultAvailableTestTimes(testCenture: test_center))),
+                  child: Container(
+                    height: 30,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left : 8.0 ,top: 5.0),
+                        child: Row(
+                          //mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Text(test_center,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
+                            SizedBox(width: 10,),
+                            Icon(Icons.access_time,size: 30,color:Color(0xFF0d6898) ,)
+                          ],
+                        ),
+                    ),
+                  ),
+                ),
+                SizedBox(height: 15.0),
+                Text('Type Of Test',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
+                  child: Text(type_of_test,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
+                ),
+                SizedBox(height: 15.0),
+                Text('Fee',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
+                  child: Text(test_fee,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
+                ),
+                SizedBox(height: 15.0),
+                Text('Test Status',style: TextStyle(fontSize: 16.0,color: Color(0xFF0d6898),fontWeight: FontWeight.bold),),
+                Padding(
+                  padding: const EdgeInsets.only(left : 10.0 ,top: 5.0),
+                  child: Text(test_status,style: TextStyle(fontSize: 22.0,color: Colors.black87,fontWeight: FontWeight.bold,)),
+                ),
+
+              ],
+            ),
         ),
       );
   }

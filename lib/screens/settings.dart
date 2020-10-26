@@ -15,18 +15,29 @@ class _SettingsState extends State<Settings> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Subscribe to Premium'),
-          centerTitle: true,
-        ),
-        body: Container(
-          child: ListView(
-            children: <Widget>[
-              SizedBox(height: 16.0),
-              CustomCard1(),
-            ],
+        floatingActionButton: Padding(
+          padding: EdgeInsets.only(bottom: 100),
+          child: FloatingActionButton(
+            elevation: 10,
+            backgroundColor: Color(0xFF0d6898),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: Center(
+                child: Icon(Icons.clear)
+            ),
           ),
-        ));
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        body: Container(
+            child: ListView(
+              children: <Widget>[
+                SizedBox(height: 80.0),
+                CustomCard1(),
+              ],
+            ),
+          ),
+        );
   }
 }
 
@@ -48,31 +59,7 @@ class CustomCard1 extends StatelessWidget {
           children: <Widget>[
 
             SizedBox(height: 10.0),
-              Center(
-                child: Container(
-                  height: 35,
-                  width: MediaQuery.of(context).size.width * 0.90,
-                  child: RaisedButton(
-                    elevation: 5.0,
-                    onPressed: () =>Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment())),
-                    padding: EdgeInsets.all(5.0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10.0),
-                    ),
-                    color: Color(0xFFB5C8D2),
-                    child: Text(
-                      'Buy Premium - €7.99',
-                      style: TextStyle(
-                        color: Color(0xFF094869),
-                        letterSpacing: 1.5,
-                        fontSize: 18.0,
-                        fontWeight: FontWeight.bold,
-                        fontFamily: 'OpenSans',
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+
             SizedBox(height: 25.0),
             Padding(
               padding: const EdgeInsets.only(left:20.0),
@@ -134,6 +121,35 @@ class CustomCard1 extends StatelessWidget {
                           color: Color(0xFF0d6898),
                           fontWeight: FontWeight.bold),
                       maxLines: 1,
+                    ),
+
+                    SizedBox(height: 10.0),
+
+                    SizedBox(height: 25.0),
+                    Center(
+                      child: Container(
+                        height: 35,
+                        width: MediaQuery.of(context).size.width * 0.90,
+                        child: RaisedButton(
+                          elevation: 5.0,
+                          onPressed: () =>Navigator.push(context, MaterialPageRoute(builder: (context)=>Payment())),
+                          padding: EdgeInsets.all(5.0),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                          color: Color(0xFFB5C8D2),
+                          child: Text(
+                            'Buy Premium - €7.99',
+                            style: TextStyle(
+                              color: Color(0xFF094869),
+                              letterSpacing: 1.5,
+                              fontSize: 18.0,
+                              fontWeight: FontWeight.bold,
+                              fontFamily: 'OpenSans',
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),

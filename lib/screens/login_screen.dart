@@ -19,6 +19,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
+  bool _buttonLoading=false;
 
   //SharedPreferences sharedPreferences;
   int statusCheck=0;
@@ -53,22 +54,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       jsonResponse = jsonDecode(response.body);
-      if (jsonResponse.toString().isEmpty) {
+      print("check"+jsonResponse.toString());
+      if (jsonDecode(response.body).isEmpty) {
         print('nai data');
-        Customtoast("License Number is Not valid");
-        signIn(drivingLicence, theoryTest);
-      } else {
+        //Customtoast("License Number is Not valid");
+          signIn(drivingLicence, theoryTest);
 
+
+      } else {
         print(jsonResponse.toString());
         String id = jsonResponse['ID'].toString();
         print(id);
         print('check');
         checkfirebaseID(id, drivingLicence, theoryTest);
       }
+    }else{
+      print(response.statusCode.toString());
     }
   }
 
   void checkfirebaseID(String docId, String drvlcn, String theoryTest) async {
+
     final snapShot = await Firestore.instance
         .collection('drvlcnsbkng')
         .document(docId)
@@ -76,7 +82,75 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (snapShot == null || !snapShot.exists) {
       print("not get id from firebase");
-      signIn(drvlcn, theoryTest);
+      //signIn(drvlcn, theoryTest);
+      try {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString("id", docId);
+
+        Map<String, dynamic> tasks = {
+          "driving_licence_number": drvlcn,
+          "status": "process",
+          "theory_test_number": theoryTest
+        };
+
+        Firestore.instance
+            .collection("drvlcnsbkng")
+            .document(docId)
+            .setData(tasks)
+            .then((value) => Firestore.instance
+            .collection("drvlcnsbkng")
+            .document(docId)
+            .snapshots()
+            .listen((DocumentSnapshot result) {
+
+          print(result['status'].toString());
+          if (result['status'] == 'process') {
+            //Customtoast("Please wait until check");
+            setState(() {
+              _buttonLoading=false;
+              _isLoading = true;
+            });
+            return;
+          } else if (result['status'] == 'done') {
+            setState(() {
+              _buttonLoading=false;
+              _isLoading = true;
+            });
+            prefs.setString("status", result['status'].toString());
+            prefs.setString("test_centure", result['info']['test_center'].toString());
+            prefs.setString('DateAndTime',result['info']['date_and_time'].toString() );
+            prefs.setString("DrivingLicenceNumber", result['driving_licence_number'].toString());
+            prefs.setString("TheoryTestNumber", result['theory_test_number'].toString());
+            prefs.setString("LastDateToChangeOrCancel", result['info']['last_date_to_change_or_cancel'].toString());
+            prefs.setString("Fee", result['info']['fee'].toString());
+            prefs.setString("TestStatus", result['info']['test_status'].toString());
+            prefs.setString("TypeOfTest",result['info']['type_of_test'].toString(),);
+            statusCheck=0;
+            setState(() {
+              _isLoading = false;
+            });
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (BuildContext context) => Dashboard()),
+                    (Route<dynamic> route) => false);
+          } else {
+            statusCheck=1;
+            failCheck =
+            "A booking cannot be found for the details you have given please check the details and try again";
+            setState(() {
+              _isLoading = false;
+            });
+          }
+        }))
+            .catchError((e) => print(e.toString()));
+        //createWork(id);
+        setState(() {
+          _isLoading = false;
+        });
+      }catch(e){
+        print(e.toString());
+      }
+
     } else {
       setState(() {
         _isLoading = false;
@@ -112,6 +186,7 @@ class _LoginScreenState extends State<LoginScreen> {
 //      "theory_test_number":theoryTest
 
     //   };
+
     Map data = {
       "short_name": drivingLicence,
       "search_text": drivingLicence,
@@ -150,45 +225,50 @@ class _LoginScreenState extends State<LoginScreen> {
               .collection("drvlcnsbkng")
               .document(id)
               .setData(tasks)
-              .then((value) => Firestore.instance
-                      .collection("drvlcnsbkng")
-                      .document(id)
-                      .snapshots()
-                      .listen((DocumentSnapshot result) {
-                    print(result['status'].toString());
-                    if (result['status'] == 'process') {
-                      Customtoast("Please wait until check");
-                      setState(() {
-                        _isLoading = true;
-                      });
-                      return;
-                    } else if (result['status'] == 'done') {
-                      prefs.setString("status", result['status'].toString());
-                      prefs.setString("test_centure", result['info']['test_center'].toString());
-                      prefs.setString('DateAndTime',result['info']['date_and_time'].toString() );
-                      prefs.setString("DrivingLicenceNumber", result['driving_licence_number'].toString());
-                      prefs.setString("TheoryTestNumber", result['theory_test_number'].toString());
-                      prefs.setString("LastDateToChangeOrCancel", result['info']['last_date_to_change_or_cancel'].toString());
-                      prefs.setString("Fee", result['info']['fee'].toString());
-                      prefs.setString("TestStatus", result['info']['test_status'].toString());
-                      prefs.setString("TypeOfTest",result['info']['type_of_test'].toString(),);
-                      statusCheck=0;
-                      setState(() {
-                        _isLoading = false;
-                      });
-                      Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                              builder: (BuildContext context) => Dashboard()),
-                          (Route<dynamic> route) => false);
-                    } else {
-                      statusCheck=1;
-                      failCheck =
-                      "A booking cannot be found for the details you have given please check the details and try again";
-                      setState(() {
-                        _isLoading = false;
-                      });
-                    }
-                  }))
+              .then((value) {
+            Firestore.instance
+                .collection("drvlcnsbkng")
+                .document(id)
+                .snapshots()
+                .listen((DocumentSnapshot result) {
+              print(result['status'].toString());
+              if (result['status'] == 'process') {
+                //Customtoast("Please wait until check");
+                setState(() {
+                  _buttonLoading=false;
+                  _isLoading = true;
+                });
+
+                return;
+
+              } else if (result['status'] == 'done') {
+                prefs.setString("status", result['status'].toString());
+                prefs.setString("test_centure", result['info']['test_center'].toString());
+                prefs.setString('DateAndTime',result['info']['date_and_time'].toString() );
+                prefs.setString("DrivingLicenceNumber", result['driving_licence_number'].toString());
+                prefs.setString("TheoryTestNumber", result['theory_test_number'].toString());
+                prefs.setString("LastDateToChangeOrCancel", result['info']['last_date_to_change_or_cancel'].toString());
+                prefs.setString("Fee", result['info']['fee'].toString());
+                prefs.setString("TestStatus", result['info']['test_status'].toString());
+                prefs.setString("TypeOfTest",result['info']['type_of_test'].toString(),);
+                statusCheck=0;
+                setState(() {
+                  _isLoading = false;
+                });
+                Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(
+                        builder: (BuildContext context) => Dashboard()),
+                        (Route<dynamic> route) => false);
+              } else {
+                statusCheck=1;
+                failCheck =
+                "A booking cannot be found for the details you have given please check the details and try again";
+                setState(() {
+                  _isLoading = false;
+                });
+              }
+            });
+          })
               .catchError((e) => print(e.toString()));
           //createWork(id);
           setState(() {
@@ -197,6 +277,10 @@ class _LoginScreenState extends State<LoginScreen> {
         } catch (e) {
           e.toString();
         }
+      }else{
+        setState(() {
+          _isLoading=false;
+        });
       }
     } else {
       setState(() {
@@ -238,9 +322,9 @@ class _LoginScreenState extends State<LoginScreen> {
       print(result['status'].toString());
       if (result['status'] == 'process') {
         Customtoast("Please wait until check");
-        setState(() {
+        /*setState(() {
           _isLoading = true;
-        });
+        });*/
         return;
       } else if (result['status'] == 'done') {
         prefs.setString("status", result['status'].toString());
@@ -353,10 +437,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
         ),
         failCheck.isNotEmpty
-            ? Text(
-                failCheck,
-                style: TextStyle(color: Colors.red),
-              )
+            ? Padding(
+          padding: EdgeInsets.all(5),
+          child: Text(
+            failCheck,textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.red,fontWeight: FontWeight.w600,fontSize: 18),
+          ),
+        )
             : Text("")
       ],
     );
@@ -454,7 +541,7 @@ class _LoginScreenState extends State<LoginScreen> {
     return Container(
       padding: EdgeInsets.symmetric(vertical: 20.0),
       width: double.infinity,
-      child: RaisedButton(
+      child:_buttonLoading?Center(child: CircularProgressIndicator(backgroundColor:Colors.amberAccent,),) :RaisedButton(
         color: Colors.amberAccent,
         elevation: 5.0,
         onPressed: () async {
@@ -462,7 +549,7 @@ class _LoginScreenState extends State<LoginScreen> {
             Customtoast("Enter driving licence Number");
           } else {
             setState(() {
-              _isLoading = true;
+              _buttonLoading = true;
             });
             SharedPreferences prefs = await SharedPreferences.getInstance();
             prefs.setString('licence', licenceController.text);
@@ -617,20 +704,30 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               _isLoading
                   ? Center(
-                      child: SpinKitWave(
-                          color: Colors.white, type: SpinKitWaveType.center),
-                    )
-                  : Container(
-                      height: double.infinity,
-                      child: SingleChildScrollView(
-                        physics: AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 40.0,
-                          vertical: 100.0,
-                        ),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
+                          children: [
+                            Padding(
+                              padding:EdgeInsets.all(15),
+                              child: Text("Please wait we are verifying your information",textAlign:TextAlign.center,style: TextStyle(
+                                  fontSize: 30,color: Colors.white,fontWeight: FontWeight.w600
+                              ),),
+                            ),
+                            SpinKitThreeBounce(color: Colors.white,),
+                          ],
+                        ),
+                    )
+                  :  Container(
+                  height: double.infinity,
+                  child: SingleChildScrollView(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 40.0,
+                      vertical: 70.0,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: <Widget>[
 //                      Text(
 //                        'Driving Test Scheduler',
 //                        style: TextStyle(
@@ -640,32 +737,32 @@ class _LoginScreenState extends State<LoginScreen> {
 //                          fontWeight: FontWeight.bold,
 //                        ),
 //                      ),
-                            Padding(
-                                padding: EdgeInsets.only(left: 40, right: 40),
-                                child: Container(
-                                  child: Image.asset(
-                                    "assets/logo.png",
-                                    height: 200,
-                                    width: 300,
-                                  ),
-                                )),
-                            SizedBox(height: 70.0),
-                            _buildEmailTF(),
-                            SizedBox(
-                              height: 10.0,
-                            ),
-                            _buildPasswordTF(),
-                            //_buildForgotPasswordBtn(),
-                            //_buildRememberMeCheckbox(),
-
-                            statusCheck==0?_buildLoginBtn():_buildTryAgainBtn(),
-                            //_buildSignInWithText(),
-                            //_buildSocialBtnRow(),
-                            //_buildSignupBtn(),
-                          ],
+                        Padding(
+                            padding: EdgeInsets.only(left: 40, right: 40),
+                            child: Container(
+                              child: Image.asset(
+                                "assets/logo.png",
+                                height: 200,
+                                width: 300,
+                              ),
+                            )),
+                        SizedBox(height: 20.0),
+                        _buildEmailTF(),
+                        SizedBox(
+                          height: 10.0,
                         ),
-                      ),
-                    )
+                        _buildPasswordTF(),
+                        //_buildForgotPasswordBtn(),
+                        //_buildRememberMeCheckbox(),
+
+                        statusCheck==0?_buildLoginBtn():_buildTryAgainBtn(),
+                        //_buildSignInWithText(),
+                        //_buildSocialBtnRow(),
+                        //_buildSignupBtn(),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

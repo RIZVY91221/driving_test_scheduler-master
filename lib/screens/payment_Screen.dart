@@ -1,4 +1,5 @@
 import 'package:driving_test_scheduler/screens/addTestCenter_paid.dart';
+import 'package:driving_test_scheduler/screens/dashboard.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -84,7 +85,20 @@ class _PaymentState extends State<Payment> {
                               if(cardController.text.isNotEmpty && cardController.text.toString()==cardnumber){
                                 SharedPreferences prefs = await SharedPreferences.getInstance();
                                 prefs.setBool('isPayment', true);
-                                Navigator.push(context, MaterialPageRoute(builder: (context)=>AddTestCentur()));
+                                Fluttertoast.showToast(
+                                    msg: "Payment Verified \n Now You Will Use Pro-Feature",
+                                    toastLength: Toast.LENGTH_LONG,
+                                    gravity: ToastGravity.CENTER,
+                                    timeInSecForIosWeb: 1,
+                                    backgroundColor: Colors.green,
+                                    textColor: Colors.white,
+                                    fontSize: 20.0
+                                );
+                                Navigator.of(context).pushAndRemoveUntil(
+                                    MaterialPageRoute(
+                                        builder: (BuildContext context) => Dashboard()),
+                                        (Route<dynamic> route) => false);
+
                               }else{
                                 Fluttertoast.showToast(
                                     msg: "Please enter valid card number",
