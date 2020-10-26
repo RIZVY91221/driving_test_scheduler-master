@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "52455772473",
+    "firebase_url": "https://nittoorm-c6f1d.firebaseio.com",
+    "project_id": "nittoorm-c6f1d",
+    "storage_bucket": "nittoorm-c6f1d.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:52455772473:android:aee46dce52e58bd2c3d8e8",
+        "android_client_info": {
+          "package_name": "com.nittodigital.www.driving_test_scheduler"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "52455772473-gl2eii077kdf9cgnljn3s27q01v182l1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIHepLZhKCHpcswf-I_ufIxzi-l2TjyIA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "52455772473-gl2eii077kdf9cgnljn3s27q01v182l1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

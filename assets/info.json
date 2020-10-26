@@ -1,0 +1,12 @@
+{
+  "driving_licence_number": "",
+  "theory_test_number": "",
+  "info": {
+    "date_and_time": "",
+    "last_date_to_change_or_cancel": "",
+    "test_center": "",
+    "type_of_test": "",
+    "fee": "",
+    "test_status": ""
+  }
+}
